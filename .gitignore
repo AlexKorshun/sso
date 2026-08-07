@@ -2,7 +2,7 @@
 /bin/
 
 /storage/
-
+CLAUDE.md
 .env
 .idea/
 .vscode/

@@ -1,27 +1,33 @@
 package app
 
 import (
+	"context"
 	"log/slog"
 	"time"
 
 	grpcapp "github.com/AlexKorshun/sso/internal/app/grpc"
+	"github.com/AlexKorshun/sso/internal/services/auth"
+	"github.com/AlexKorshun/sso/internal/storage/postgres"
 )
 
 type App struct {
 	GRPCServer *grpcapp.App
+	Storage    *postgres.Storage
 }
 
 func New(
 	log *slog.Logger,
 	grpcPort int,
-	storagePath string,
+	databaseURL string,
 	tokenTTL time.Duration) *App {
 
-	//TODO: инициализировать storage
+	storage, err := postgres.New(context.Background(), databaseURL)
+	if err != nil {
+		panic(err)
+	}
 
-	//TODO: инициализировать сервисный слой
+	authService := auth.New(log, storage, storage, storage, tokenTTL)
+	grpcApp := grpcapp.New(log, authService, grpcPort)
 
-	grpcApp := grpcapp.New(log, grpcPort)
-
-	return &App{GRPCServer: grpcApp}
+	return &App{GRPCServer: grpcApp, Storage: storage}
 }

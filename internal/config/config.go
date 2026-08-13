@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	Env         string        `yaml:"env" env-default:"local"`
-	StoragePath string        `yaml:"storage_path" env-required:"true"`
+	DatabaseURL string        `yaml:"database_url" env-required:"true"`
 	TokenTTL    time.Duration `yaml:"token_ttl" env-required:"true"`
 	GRPC        GRPCConfig    `yaml:"grpc"`
 }
@@ -25,13 +25,18 @@ func MustLoad() *Config { //TODO: возвращать ошибку убрать
 	if path == "" {
 		panic("no config path")
 	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		panic("config file does not exist:" + path)
+
+	return MustLoadByPath(path)
+}
+
+func MustLoadByPath(configPath string) *Config {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		panic("config file does not exist:" + configPath)
 	}
 
 	var cfg Config
 
-	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
+	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		panic("failed to read config: " + err.Error())
 	}
 	return &cfg

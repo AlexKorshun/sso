@@ -42,6 +42,7 @@ var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrInvalidAppID       = errors.New("invalid app id")
 	ErrUserExists         = errors.New("user alreasy exists")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 // New return a new instance of the Auth service.
@@ -153,6 +154,9 @@ func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 		if errors.Is(err, storage.ErrAppNotFound) {
 			log.Warn("app not found", slog.String("error", err.Error()))
 			return false, fmt.Errorf("%s: %w", op, ErrInvalidAppID)
+		}
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return false, fmt.Errorf("%s:%w", op, ErrUserNotFound)
 		}
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
